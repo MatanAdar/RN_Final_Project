@@ -7,7 +7,7 @@ from scapy.layers.inet import UDP, IP
 
 def dns_server():
 
-    pkt=sniff(filter="udp and port 53", count=1, iface="enp0s3")[0]
+    pkt = sniff(filter="udp and port 53", count=1, iface="enp0s3")[0]
 
     print("Starting DNS server...")
 
@@ -20,8 +20,11 @@ def dns_server():
 
         send(spoofed_pkt)
 
+    else:
+        print("there is no layer in pkt")
+
 #sniff(filter="udp and port 53", prn=dns_server)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     dns_server()

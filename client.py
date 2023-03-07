@@ -8,6 +8,8 @@ from scapy.layers.l2 import Ether
 from scapy.sendrecv import sendp
 
 
+global client_ip_from_server
+
 
 def dhcp_discover():
 
@@ -17,42 +19,44 @@ def dhcp_discover():
                     BOOTP(op=1, chaddr="4a:e4:66:e8:7a:00", xid=23567342) / \
                     DHCP(options=[("message-type", "discover"), "end"])
 
+    # send DHCP discover to the server
     sendp(dhcp_discover1)
 
 
 # Define a function to handle DHCP responses
 def got_dhcp_offer():
 
+    global client_ip_from_server
+
     pkt = sniff(filter="udp and port 68", count=1, iface="enp0s3")[0]
 
-    global client_ip
-    client_ip = pkt[BOOTP].yiaddr
+    if DHCP in pkt and pkt[DHCP].options[0][1] == 2:
+        print("DHCP Offer received")
 
-    if client_ip == "0.0.0.0":
-        print("there is no more available ips from the server")
-        return
+        client_ip_from_server = pkt[BOOTP].yiaddr
 
-    print("the client_ip is:", client_ip)
+        if client_ip_from_server == "0.0.0.0":
+            print("there is no more available ips from the server")
+            return
 
-    print("got offer from server")
-    if DHCP in pkt:
-        if pkt[DHCP].options[0][1] == 2:
-            print("DHCP Offer received")
+        print("the client_ip that the server offer is:", client_ip_from_server)
 
-            # Craft DHCP Request
-            dhcp_request = Ether(dst="ff:ff:ff:ff:ff:ff") / \
-                           IP(src="0.0.0.0", dst="255.255.255.255") / \
-                           UDP(sport=68, dport=67) / \
-                           BOOTP(op=1, chaddr="4a:e4:66:e8:7a:00", xid=pkt[BOOTP].xid) / \
-                           DHCP(options=[("message-type", "request"),
-                                         ("requested_addr", pkt[BOOTP].yiaddr),
-                                         ("server_id", pkt[IP].src),
-                                         "end"])
+        print("ok, i want this ip address:", client_ip_from_server, "can i lease it?")
 
-            time.sleep(1)
+        # Craft DHCP Request
+        dhcp_request = Ether(dst="ff:ff:ff:ff:ff:ff") / \
+                       IP(src="0.0.0.0", dst="255.255.255.255") / \
+                       UDP(sport=68, dport=67) / \
+                       BOOTP(op=1, chaddr="4a:e4:66:e8:7a:00", xid=pkt[BOOTP].xid) / \
+                       DHCP(options=[("message-type", "request"),
+                                     ("requested_addr", pkt[BOOTP].yiaddr),
+                                     ("server_id", pkt[IP].src),
+                                     "end"])
 
-            # Send DHCP Request
-            sendp(dhcp_request)
+        time.sleep(1)
+        print("sending dhcp request to the server")
+        # Send DHCP Request to the server
+        sendp(dhcp_request)
 
 
 def got_dhcp_ack():
@@ -62,6 +66,7 @@ def got_dhcp_ack():
     if DHCP in pkt and pkt[DHCP].options[0][1] == 5:
         print("DHCP ack received")
 
+        print("so my ip address is:", client_ip_from_server)
 
 
 
@@ -76,7 +81,10 @@ def dns_client(domain):
     dns_client(domain)
 
 
+# main
 if __name__ == "__main__":
     dhcp_discover()
     got_dhcp_offer()
     got_dhcp_ack()
+
+    #dns_client()
