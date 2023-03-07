@@ -40,7 +40,7 @@ def got_dhcp_discover():
         offer_client_ip = find_unused_ip_for_client
 
         # Craft DHCP Offer and offer the client ip to the client that the server find
-        dhcp_offer1 = Ether(dst="ff:ff:ff:ff:ff:ff") / \
+        dhcp_offer1 = Ether(dst="ff:ff:ff:ff:ff:ff", src="4a:e4:66:e8:7a:00") / \
                       IP(src="0.0.0.0", dst="255.255.255.255") / \
                       UDP(sport=67, dport=68) / \
                       BOOTP(op=2, yiaddr=offer_client_ip, siaddr="10.0.0.1", giaddr="0.0.0.0", chaddr=pkt[Ether].src, xid=pkt[BOOTP].xid) / \
@@ -72,7 +72,7 @@ def dhcp_ack():
         ips_in_used.append(offer_client_ip)
 
         # Craft DHCP Ack
-        dhcp_ack1 = Ether(dst="ff:ff:ff:ff:ff:ff") / \
+        dhcp_ack1 = Ether(dst="ff:ff:ff:ff:ff:ff", src="4a:e4:66:e8:7a:00") / \
                     IP(src="0.0.0.0", dst="255.255.255.255") / \
                     UDP(sport=67, dport=68) / \
                     BOOTP(op=2, yiaddr=pkt[BOOTP].yiaddr, siaddr="10.0.0.1", giaddr="0.0.0.0",
