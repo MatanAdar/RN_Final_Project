@@ -85,15 +85,13 @@ def dns_socket():
 
     dns_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    dns_sock.connect(("127.0.0.1", 53))
-
     input_domain = input("DNS please input a domain:")
 
     dns_sock.sendto(input_domain.encode("utf-8"), ("127.0.0.1", 53))
 
     ip_address = dns_sock.recvfrom(4096)
 
-    print("the ip of the address is:", ip_address[0].decode("utf-8"))
+    print("the ip of the address is:", ip_address[0].decode("utf-8"))  #because the ip_address we get from the server its a tuple
 
     dns_sock.close()
 
@@ -137,9 +135,9 @@ def app_client():
 
 # main
 if __name__ == "__main__":
-    #dhcp_discover()
-    #got_dhcp_offer()
-    #got_dhcp_ack()
+    dhcp_discover()
+    got_dhcp_offer()
+    got_dhcp_ack()
 
     dns_socket()
 
