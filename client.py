@@ -8,17 +8,15 @@ from scapy.layers.inet import UDP, IP
 from scapy.layers.l2 import Ether
 from scapy.sendrecv import sendp
 
-
 global client_ip_from_server
 
 
 def dhcp_discover():
-
     dhcp_discover1 = Ether(dst="ff:ff:ff:ff:ff") / \
-                    IP(src='0.0.0.0', dst='255.255.255.255') / \
-                    UDP(sport=68, dport=67) / \
-                    BOOTP(op=1, chaddr="4a:e4:66:e8:7a:00", xid=23567342) / \
-                    DHCP(options=[("message-type", "discover"), "end"])
+                     IP(src='0.0.0.0', dst='255.255.255.255') / \
+                     UDP(sport=68, dport=67) / \
+                     BOOTP(op=1, chaddr="4a:e4:66:e8:7a:00", xid=23567342) / \
+                     DHCP(options=[("message-type", "discover"), "end"])
 
     # send DHCP discover to the server
     sendp(dhcp_discover1)
@@ -26,7 +24,6 @@ def dhcp_discover():
 
 # Define a function to handle DHCP responses
 def got_dhcp_offer():
-
     global client_ip_from_server
 
     pkt = sniff(filter="udp and port 68", count=1, iface="enp0s3")[0]
@@ -61,8 +58,7 @@ def got_dhcp_offer():
 
 
 def got_dhcp_ack():
-
-    pkt = sniff(filter="udp and port 68", count=1, iface="enp0s3")[0]  #got the pkt in the spot 0
+    pkt = sniff(filter="udp and port 68", count=1, iface="enp0s3")[0]  # got the pkt in the spot 0
 
     if DHCP in pkt and pkt[DHCP].options[0][1] == 5:
         print("DHCP ack received")
@@ -70,19 +66,18 @@ def got_dhcp_ack():
         print("so my ip address is:", client_ip_from_server)
 
 
-def dns_client(domain):
-    dns_packet = IP(dst='8.8.8.8')/UDP(dport=53)/DNS(rd=1, qd=DNSQR(qname=domain))
-    response = sr1(dns_packet, verbose=0)
-    if response and response.haslayer(DNSRR):
-        print(response[DNSRR].rdata)
-    else:
-        print('DNS query failed.')
-    domain = 'example.com'
-    dns_client(domain)
+# def dns_client(domain):
+#     dns_packet = IP(dst='8.8.8.8') / UDP(dport=53) / DNS(rd=1, qd=DNSQR(qname=domain))
+#     response = sr1(dns_packet, verbose=0)
+#     if response and response.haslayer(DNSRR):
+#         print(response[DNSRR].rdata)
+#     else:
+#         print('DNS query failed.')
+#     domain = 'example.com'
+#     dns_client(domain)
 
 
 def dns_socket():
-
     dns_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     input_domain = input("DNS please input a domain:")
@@ -91,13 +86,14 @@ def dns_socket():
 
     ip_address = dns_sock.recvfrom(4096)
 
-    print("the ip of the address is:", ip_address[0].decode("utf-8"))  #because the ip_address we get from the server its a tuple
+    print("the ip of the address is:",
+          ip_address[0].decode("utf-8"))  # because the ip_address we get from the server its a tuple
 
     dns_sock.close()
 
-def app_client():
 
-     # Configure the server address and port number
+def app_client():
+    # Configure the server address and port number
     server_address = '127.0.0.1'
     server_port = 20529
 
@@ -138,7 +134,4 @@ if __name__ == "__main__":
     dhcp_discover()
     got_dhcp_offer()
     got_dhcp_ack()
-
     dns_socket()
-
-    #app_client()
